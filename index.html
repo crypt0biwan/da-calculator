@@ -8,74 +8,150 @@
         <meta name="robots" content="noindex">
         
         <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.0.2/css/bootstrap.min.css">
+
+        <style type="text/css">
+            #chart_div {
+                height: auto;
+                min-height: 400px;
+            }
+        </style>
     </head>
 
     <body class="pt-3">
         <div class="container">
             <h1>DA level calculator</h1>
-            <div class="row">
-                <div class="col"> 
-                    <label for="highest">Highest tier</label>
+            <form>
+                <div class="row">
+                    <div class="col"> 
+                        <label for="highest">Highest tier</label>
+                    </div>
+                    <div class="col">
+                        <input id="highest" type="number" min="0" max="1000" value="1000" />
+                    </div>
                 </div>
-                <div class="col">
-                    <input id="highest" type="number" min="0" max="1000" value="1000" />
+                <div class="row">
+                    <div class="col"> 
+                        <label for="lowest">Lowest tier</label>
+                    </div>
+                    <div class="col">
+                        <input id="lowest" type="number" min="0" max="1000" value="100"/>
+                    </div>
                 </div>
-            </div>
-            <div class="row">
-                <div class="col"> 
-                    <label for="lowest">Lowest tier</label>
+                <div class="row">
+                    <div class="col"> 
+                        <label for="type">Type</label>
+                    </div>
+                    <div class="col">
+                        <input type="radio" id="linear" name="type" value="linear"/>
+                        <label for="linear">linear</label>
+                        <input type="radio" id="exponential" name="type" value="exponential" checked/>
+                        <label for="exponential">exponential</label>
+                    </div>
                 </div>
-                <div class="col">
-                    <input id="lowest" type="number" min="0" max="1000" value="100"/>
+                <div class="row">
+                    <div class="col"> 
+                        <label for="lowest">Steps</label>
+                    </div>
+                    <div class="col">
+                        <input type="radio" id="2" name="steps" value="2"/>
+                        <label for="2">2</label>
+                        <input type="radio" id="3" name="steps" value="3"/>
+                        <label for="3">3</label>
+                        <input type="radio" id="4" name="steps" value="4"/>
+                        <label for="4">4</label>
+                        <input type="radio" id="5" name="steps" value="5"/>
+                        <label for="5">5</label>
+                        <input type="radio" id="6" name="steps" value="6"/>
+                        <label for="6">6</label>
+                        <input type="radio" id="7" name="steps" value="7"/>
+                        <label for="7">7</label>
+                        <input type="radio" id="8" name="steps" value="8" checked/>
+                        <label for="8">8</label>
+                        <input type="radio" id="9" name="steps" value="9"/>
+                        <label for="9">9</label>
+                        <input type="radio" id="10" name="steps" value="10"/>
+                        <label for="10">10</label>
+                    </div>
                 </div>
-            </div>
-            <div class="row">
-                <div class="col"> 
-                    <label for="lowest">Steps</label>
+                <div class="row mt-3">
+                    <div class="col">
+                        <button type="submit" class="btn btn-primary">Calculate</button>
+                    </div>
                 </div>
-                <div class="col">
-                    <input type="radio" id="2" name="steps" value="2" onchange="calculateDA(this);"/>
-                    <label for="2">2</label>
-                    <input type="radio" id="3" name="steps" value="3" onchange="calculateDA(this);"/>
-                    <label for="3">3</label>
-                    <input type="radio" id="4" name="steps" value="4" onchange="calculateDA(this);"/>
-                    <label for="4">4</label>
-                    <input type="radio" id="5" name="steps" value="5" onchange="calculateDA(this);"/>
-                    <label for="5">5</label>
-                    <input type="radio" id="6" name="steps" value="6" onchange="calculateDA(this);"/>
-                    <label for="6">6</label>
-                </div>
-            </div>
+            </form>
         </div>
+
         <div id="result" class="container mt-5"></div>
+
+        <div id="chart_div"></div>
         
+        <script src="loader.js"></script>
         <script>
-            function calculateDA(src) {
+            google.charts.load("current", {packages: ["corechart"]});            
+
+            const form = document.querySelector('form')
+
+            form.addEventListener('submit', calculateDA)
+
+            const renderChart = (type, levels) => {
+                const chartData = google.visualization.arrayToDataTable([['Index', 'Tez price']].concat(levels.map((val, i) => [`Step ${i+1}`, val])))
+
+                var options = {
+                    title: `${type.toUpperCase()} DA levels`,
+                    curveType: 'function',
+                    legend: { position: 'bottom' },
+                    pointSize: 10
+                };
+
+                const chart = new google.visualization.LineChart(
+                    document.getElementById('chart_div')
+                );
+                    
+                chart.draw(chartData, options);
+            }
+
+            function calculateDA(event) {
+                event.preventDefault()
+
                 const result = document.querySelector('#result')
                 result.innerHTML = '<hr />'
 
-                const steps = parseInt(src.value, 10)
+                const steps = parseInt(document.querySelector('[name="steps"]:checked').value, 10)
                 const min = parseInt(document.querySelector('#lowest').value, 10)
                 const max = parseInt(document.querySelector('#highest').value, 10)
+                const type = document.querySelector('[name="type"]:checked').value
+
                 const difference = max - min
-                const stepValue = difference / (steps-1)
-
-
-                result.innerHTML += `<div class="row"><div class="col">Number of levels</div><div class="col">${steps}</div></div>`
-                result.innerHTML += `<div class="row"><div class="col">Tez decrease per level</div><div class="col">${Math.round(stepValue)} tez</div></div>`
 
                 let levels = []
 
-                if(steps > 2) {
-                    for(let i=1; i<=steps-2; i++) {
-                        levels.push(Math.round(min+stepValue*i))
+                if(type === 'exponential') {
+                    for(let i=1; i <= steps-2; i++) {
+                        const price = Math.floor(max/Math.pow(2,i)+min)
+                        
+                        levels.push(Math.round(price))
                     }
+                } else {
+                    const stepValue = difference / (steps-1)
+
+                    if(steps > 2) {
+                        for(let i=1; i<=steps-2; i++) {
+                            levels.push(Math.round(min+stepValue*i))
+                        }
+                    }
+
                 }
 
                 levels.unshift(min)
                 levels.push(max)
 
-                result.innerHTML += `<div class="row"><div class="col">DA levels</div><div class="col">${levels.reverse().join(', ')}</div></div>`
+                levels = levels.sort(function(a, b){return a-b}).reverse()
+
+                result.innerHTML += `<div class="row"><div class="col">DA type</div><div class="col">${type}</div></div>`
+                result.innerHTML += `<div class="row"><div class="col">Number of levels</div><div class="col">${steps}</div></div>`
+                result.innerHTML += `<div class="row"><div class="col">DA levels</div><div class="col">${levels.join(', ')}</div></div>`
+
+                renderChart(type, levels)
             }
         </script>
     </body>
