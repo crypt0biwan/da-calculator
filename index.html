@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang='en'>
+    <head>
+        <meta charset='UTF-8'>
+        <title>fxhash DA calculator</title>
+
+        <meta name="author" content="obi.tez">
+        <meta name="robots" content="noindex">
+        
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.0.2/css/bootstrap.min.css">
+    </head>
+
+    <body class="pt-3">
+        <div class="container">
+            <h1>DA level calculator</h1>
+            <div class="row">
+                <div class="col"> 
+                    <label for="highest">Highest tier</label>
+                </div>
+                <div class="col">
+                    <input id="highest" type="number" min="0" max="1000" value="1000" />
+                </div>
+            </div>
+            <div class="row">
+                <div class="col"> 
+                    <label for="lowest">Lowest tier</label>
+                </div>
+                <div class="col">
+                    <input id="lowest" type="number" min="0" max="1000" value="100"/>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col"> 
+                    <label for="lowest">Steps</label>
+                </div>
+                <div class="col">
+                    <input type="radio" id="2" name="steps" value="2" onchange="calculateDA(this);"/>
+                    <label for="2">2</label>
+                    <input type="radio" id="3" name="steps" value="3" onchange="calculateDA(this);"/>
+                    <label for="3">3</label>
+                    <input type="radio" id="4" name="steps" value="4" onchange="calculateDA(this);"/>
+                    <label for="4">4</label>
+                    <input type="radio" id="5" name="steps" value="5" onchange="calculateDA(this);"/>
+                    <label for="5">5</label>
+                    <input type="radio" id="6" name="steps" value="6" onchange="calculateDA(this);"/>
+                    <label for="6">6</label>
+                </div>
+            </div>
+        </div>
+        <div id="result" class="container mt-5"></div>
+        
+        <script>
+            function calculateDA(src) {
+                const result = document.querySelector('#result')
+                result.innerHTML = '<hr />'
+
+                const steps = parseInt(src.value, 10)
+                const min = parseInt(document.querySelector('#lowest').value, 10)
+                const max = parseInt(document.querySelector('#highest').value, 10)
+                const difference = max - min
+                const stepValue = difference / (steps-1)
+
+
+                result.innerHTML += `<div class="row"><div class="col">Number of levels</div><div class="col">${steps}</div></div>`
+                result.innerHTML += `<div class="row"><div class="col">Tez decrease per level</div><div class="col">${Math.round(stepValue)} tez</div></div>`
+
+                let levels = []
+
+                if(steps > 2) {
+                    for(let i=1; i<=steps-2; i++) {
+                        levels.push(Math.round(min+stepValue*i))
+                    }
+                }
+
+                levels.unshift(min)
+                levels.push(max)
+
+                result.innerHTML += `<div class="row"><div class="col">DA levels</div><div class="col">${levels.reverse().join(', ')}</div></div>`
+            }
+        </script>
+    </body>
+</html>
