@@ -94,7 +94,7 @@
             form.addEventListener('submit', calculateDA)
 
             const renderChart = (type, levels) => {
-                const chartData = google.visualization.arrayToDataTable([['Index', 'Tez price']].concat(levels.map((val, i) => [`Step ${i+1}`, val])))
+                const chartData = google.visualization.arrayToDataTable([['Index', 'Price']].concat(levels.map((val, i) => [`Step ${i+1}`, val])))
 
                 var options = {
                     title: `${type.toUpperCase()} DA levels`,
